@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Automated Egg Price Scraper for Raspberry Pi
+
 Scrapes NECC egg prices daily and maintains monthly CSV files
 """
 
