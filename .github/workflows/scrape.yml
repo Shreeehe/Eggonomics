@@ -1,0 +1,39 @@
+# Name for your little robot helper
+name: Daily Egg Price Scraper
+
+on:
+  # This makes it run automatically on a schedule
+  schedule:
+    # Runs every day at 02:00 AM Indian Standard Time
+    - cron: '30 20 * * *'
+  # This lets you run it manually too from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  scrape-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checks out your repository's code
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # Step 2: Sets up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Step 3: Installs the needed libraries from requirements.txt
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      # Step 4: Runs your data scraper script! This is the main part.
+      - name: Run Scraper
+        run: python egg_price_automation.py
+
+      # Step 5: Automatically commits the updated CSV file back to your repository
+      - name: Commit and Push if data changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "BOT: Update daily egg prices"
+          file_pattern: egg_data/*.csv
