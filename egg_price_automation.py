@@ -80,8 +80,13 @@ class EggPriceScraper:
         today = datetime.now()
         today_col = str(today.day)
         csv_path = self.get_monthly_csv_path(today)
+        
+        if "Name Of Zone / Day" not in df.columns:
+            logger.error(f"🚨 Column missing! Available columns: {df.columns.tolist()}")
+            raise ValueError("Column 'Name Of Zone / Day' is missing")
 
         city_df = df[df["Name Of Zone / Day"].isin(cities)].copy()
+
         price_col = next((col for col in city_df.columns if col != "Name Of Zone / Day"), None)
         if not price_col:
             raise ValueError("❌ No price column found")
