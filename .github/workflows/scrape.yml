@@ -11,6 +11,10 @@ on:
 
 jobs:
   scrape-and-commit:
+    # 👇 These lines are already here, perfect!
+    permissions:
+      contents: write
+    
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checks out your repository's code
