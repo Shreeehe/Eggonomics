@@ -143,7 +143,7 @@ class EggPriceScraper:
                 # Update prices for cities that have data
                 for _, row in city_df.iterrows():
                     city_name = row["Name Of Zone / Day"]
-                    if today_col in row and row[today_col] != "-":
+                    if "Average" in row and row["Average"] != "-":
                         # Find city in monthly_df and update
                         mask = monthly_df["Name Of Zone / Day"] == city_name
                         if mask.any():
@@ -226,9 +226,10 @@ class EggPriceScraper:
             today_col = str(today.day)
             
             city_df = df[df["Name Of Zone / Day"].isin(cities)].copy()
-            if today_col in df.columns:
-                result = city_df[["Name Of Zone / Day", today_col]].copy()
+            if "Average" in city_df.columns:
+                result = city_df[["Name Of Zone / Day", "Average"]].copy()
                 result.columns = ["City", "Rate"]
+
                 
                 daily_path = self.data_dir / f"daily_prices_{today.strftime('%Y%m%d')}.csv"
                 result.to_csv(daily_path, index=False, encoding="utf-8-sig")
