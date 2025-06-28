@@ -1,7 +1,3 @@
-from pathlib import Path
-
-# Final and stable version of the egg_price_automation.py script
-final_script = '''
 #!/usr/bin/env python3
 
 import requests
@@ -80,35 +76,32 @@ class EggPriceScraper:
         today = datetime.now()
         today_col = str(today.day)
         csv_path = self.get_monthly_csv_path(today)
-        
-        if "Name Of Zone / Day" not in df.columns:
+
+        zone_col = "Name Of Zone / Day"
+        if zone_col not in df.columns:
             logger.error(f"🚨 Column missing! Available columns: {df.columns.tolist()}")
-            raise ValueError("Column 'Name Of Zone / Day' is missing")
+            raise ValueError(f"Column '{zone_col}' is missing")
 
-        city_df = df[df["Name Of Zone / Day"].isin(cities)].copy()
-
-        price_col = next((col for col in city_df.columns if col != "Name Of Zone / Day"), None)
+        city_df = df[df[zone_col].isin(cities)].copy()
+        price_col = next((col for col in city_df.columns if col != zone_col), None)
         if not price_col:
             raise ValueError("❌ No price column found")
 
         if csv_path.exists():
             monthly_df = pd.read_csv(csv_path)
-            logger.info(f"Loaded existing file: {csv_path}")
-            if today_col not in monthly_df.columns:
-                monthly_df[today_col] = "-"
+            logger.info(f"📄 Loaded existing monthly file: {csv_path}")
         else:
-            logger.info(f"Creating new monthly file: {csv_path}")
-            import calendar
-            days = [str(i) for i in range(1, calendar.monthrange(today.year, today.month)[1] + 1)]
-            columns = ["Name Of Zone / Day"] + days + ["Average"]
-            monthly_df = pd.DataFrame([{col: "-" for col in columns} for _ in cities])
-            monthly_df["Name Of Zone / Day"] = cities
+            monthly_df = pd.DataFrame({zone_col: cities})
+            logger.info(f"🆕 Created new monthly CSV")
+
+        if today_col not in monthly_df.columns:
+            logger.info(f"➕ Adding new column for day {today_col}")
+            monthly_df[today_col] = "-"
 
         for _, row in city_df.iterrows():
-            city = row["Name Of Zone / Day"]
+            city = row[zone_col]
             rate = row[price_col]
-            mask = monthly_df["Name Of Zone / Day"] == city
-            monthly_df.loc[mask, today_col] = rate
+            monthly_df.loc[monthly_df[zone_col] == city, today_col] = rate
 
         def calc_avg(row):
             prices = []
@@ -126,7 +119,7 @@ class EggPriceScraper:
         return csv_path
 
     def run_daily_scrape(self):
-        logger.info("Starting daily scrape...")
+        logger.info("Starting daily egg price scraping...")
         soup = self.scrape_website()
         df = self.parse_table(soup)
         cities = self.get_clean_cities(df)
@@ -144,9 +137,3 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
-'''
-
-# Save it to file
-final_path = Path("/mnt/data/egg_price_automation.py")
-final_path.write_text(final_script)
-final_path.name
