@@ -4,14 +4,14 @@ name: Daily Egg Price Scraper
 on:
   # This makes it run automatically on a schedule
   schedule:
-    # Runs every day at 02:00 AM Indian Standard Time
+    # Runs every day at 02:00 AM Indian Standard Time (UTC 20:30)
     - cron: '30 20 * * *'
   # This lets you run it manually too from the Actions tab
   workflow_dispatch:
 
 jobs:
   scrape-and-commit:
-    # 👇 These lines are already here, perfect!
+    # 👇 This is the crucial part for permissions!
     permissions:
       contents: write
     
