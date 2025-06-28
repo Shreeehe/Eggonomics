@@ -55,7 +55,7 @@ class EggPriceScraper:
         try:
             table = soup.find("table", {"border": "1px"})
             rows = table.find_all("tr")
-            
+
             # Parse table
             data = []
             for row in rows:
@@ -63,24 +63,36 @@ class EggPriceScraper:
                 cols = [col.get_text(strip=True) for col in cols]
                 if cols:
                     data.append(cols)
-            
+
             if not data:
                 raise ValueError("No data found in table")
-                
+
             df = pd.DataFrame(data[1:], columns=data[0])
-            
-            # Clean data - remove header rows
-            df = df[df["Name Of Zone / Day"] != "NECC SUGGESTED EGG PRICES"]
-            df = df[df["Name Of Zone / Day"] != "Prevailing Prices"]
-            df = df[df["Name Of Zone / Day"].notna()]
-            
+
+            # 🔍 Debug: Show actual column names from NECC
+            print("🧪 DEBUG: Columns in scraped DataFrame:", df.columns.tolist())
+
+            # 💡 Find the column that contains the zone/city name
+            zone_col = [col for col in df.columns if "zone" in col.lower() or "city" in col.lower()]
+            if not zone_col:
+                raise ValueError("❌ Could not find 'Zone / Day' column dynamically.")
+            zone_col = zone_col[0]  # use first match
+
+            # Clean data - remove extra headers
+            df = df[df[zone_col] != "NECC SUGGESTED EGG PRICES"]
+            df = df[df[zone_col] != "Prevailing Prices"]
+            df = df[df[zone_col].notna()]
+
+            # Standardize column name for rest of script
+            df.rename(columns={zone_col: "Name Of Zone / Day"}, inplace=True)
+
             logger.info(f"Parsed {len(df)} city records")
             return df
-            
+
         except Exception as e:
             logger.error(f"Failed to parse table: {e}")
             raise
-    
+
     def get_clean_cities(self, df):
         """Extract and clean city list"""
         city_column = df["Name Of Zone / Day"]
