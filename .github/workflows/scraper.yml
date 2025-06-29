@@ -2,8 +2,8 @@ name: Daily Egg Price Scraper
 
 on:
   schedule:
-    - cron: '15 4 * * *'  # Runs at 4:15 AM UTC every day
-  workflow_dispatch:       # Manual trigger support
+    - cron: '15 4 * * *'  # Runs every day at 4:15 AM UTC
+  workflow_dispatch:       # Allows manual trigger
 
 permissions:
   contents: write
@@ -13,28 +13,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repo
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: 🐍 Set up Python
+      - name: 🐍 Set Up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: 🥚 Run Egg Price Scraper
+      - name: 🥚 Run Egg Price Scraper Script
         run: python egg_price_automation.py
 
-      - name: 📤 Commit updated CSV if changed
+      - name: 📤 Commit & Push CSV Updates (only if changed)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage only CSV files
           git add egg_data/*.csv
 
+          # Avoid committing workflow files (for permission issues)
+          git reset .github/workflows/*.yml || true
+
+          # Commit and push only if there are actual changes
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
           else
